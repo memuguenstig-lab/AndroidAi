@@ -1,0 +1,43 @@
+--- app/src/main/java/com/example/MainActivity.kt	2026-07-13 10:59:00.000000000 +0000
++++ app/src/main/java/com/example/MainActivity.kt	2026-07-13 11:00:00.000000000 +0000
+@@ -153,8 +153,8 @@
+ fun SettingsDialog(settingsManager: SettingsManager, onDismiss: () -> Unit) {
+     var geminiKey by remember { mutableStateOf(settingsManager.geminiApiKey) }
+     var groqKey by remember { mutableStateOf(settingsManager.groqApiKey) }
+-    var localUrl by remember { mutableStateOf(settingsManager.localBaseUrl) }
+-    var localModel by remember { mutableStateOf(settingsManager.localModelName) }
++    var localPath by remember { mutableStateOf(settingsManager.localModelPath) }
+ 
+     AlertDialog(
+         onDismissRequest = onDismiss,
+@@ -174,16 +174,10 @@
+                     singleLine = true
+                 )
+                 OutlinedTextField(
+-                    value = localUrl,
+-                    onValueChange = { localUrl = it },
+-                    label = { Text("Local Base URL") },
+-                    singleLine = true
+-                )
+-                OutlinedTextField(
+-                    value = localModel,
+-                    onValueChange = { localModel = it },
+-                    label = { Text("Local Model Name") },
+-                    singleLine = true
++                    value = localPath,
++                    onValueChange = { localPath = it },
++                    label = { Text("Local Model Path (.task)") },
++                    singleLine = false
+                 )
+             }
+         },
+@@ -192,8 +186,7 @@
+                 onClick = {
+                     settingsManager.geminiApiKey = geminiKey
+                     settingsManager.groqApiKey = groqKey
+-                    settingsManager.localBaseUrl = localUrl
+-                    settingsManager.localModelName = localModel
++                    settingsManager.localModelPath = localPath
+                     onDismiss()
+                 }
+             ) {

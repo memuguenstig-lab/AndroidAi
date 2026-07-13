@@ -1,0 +1,6 @@
+{
+  "name": "AI File Agent",
+  "description": "Ein KI-Agent, der lokale Dateien auf dem Handy analysiert und bearbeitet, ohne Root-Rechte zu benoetigen.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
