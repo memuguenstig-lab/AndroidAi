@@ -27,4 +27,8 @@ class SettingsManager(context: Context) {
     var provider: ModelProvider
         get() = ModelProvider.valueOf(prefs.getString("provider", ModelProvider.GEMINI.name) ?: ModelProvider.GEMINI.name)
         set(value) = prefs.edit().putString("provider", value.name).apply()
+
+    var erfinderMode: Boolean
+        get() = prefs.getBoolean("erfinder_mode", false)
+        set(value) = prefs.edit().putBoolean("erfinder_mode", value).apply()
 }

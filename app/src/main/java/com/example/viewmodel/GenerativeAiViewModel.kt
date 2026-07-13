@@ -96,7 +96,21 @@ class GenerativeAiViewModel : ViewModel() {
                     "--- File: ${it.filePath} ---\n${it.content}"
                 }
                 
-                val fullPrompt = "User Prompt: $prompt\n\nWorkspace Files:\n$filesContext"
+                var systemInstructions = ""
+                if (settings.erfinderMode) {
+                    systemInstructions = """
+                        You are in 'Erfinder mode' (Inventor mode). 
+                        Your goal is to invent, research, and develop new technologies, hardware, or concepts step-by-step.
+                        Instead of just writing code, act as an inventor and scientist.
+                        Think deeply and iterate until the goal is achieved.
+                        If the task involves real-world hardware or physics, give the user step-by-step instructions on what to test in real life.
+                        Wait for the user to report back the results in the next prompt, and iterate based on those results.
+                        You must still output valid JSON. Write your step-by-step instructions, thoughts, and questions for the user into a file like 'INVENTION_LOG.md' or 'TEST_PLAN.md'.
+                        
+                    """.trimIndent()
+                }
+
+                val fullPrompt = "${systemInstructions}User Prompt: $prompt\n\nWorkspace Files:\n$filesContext"
                 val responseText = when (settings.provider) {
                     ModelProvider.GEMINI -> callGemini(fullPrompt, settings)
                     ModelProvider.GROQ -> callOpenAi(fullPrompt, settings, "https://api.groq.com/openai/v1/chat/completions", "llama3-70b-8192", settings.groqApiKey)

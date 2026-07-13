@@ -208,13 +208,21 @@ fun SettingsDialog(settingsManager: SettingsManager, context: android.content.Co
     var geminiKey by remember { mutableStateOf(settingsManager.geminiApiKey) }
     var groqKey by remember { mutableStateOf(settingsManager.groqApiKey) }
     var localPath by remember { mutableStateOf(settingsManager.localModelPath) }
+    var erfinderMode by remember { mutableStateOf(settingsManager.erfinderMode) }
     
-
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Settings") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("Erfinder Mode (Inventor Mode)")
+                    Switch(checked = erfinderMode, onCheckedChange = { erfinderMode = it })
+                }
                 OutlinedTextField(
                     value = geminiKey,
                     onValueChange = { geminiKey = it },
@@ -285,6 +293,7 @@ fun SettingsDialog(settingsManager: SettingsManager, context: android.content.Co
                     settingsManager.geminiApiKey = geminiKey
                     settingsManager.groqApiKey = groqKey
                     settingsManager.localModelPath = localPath
+                    settingsManager.erfinderMode = erfinderMode
                     onDismiss()
                 }
             ) {
