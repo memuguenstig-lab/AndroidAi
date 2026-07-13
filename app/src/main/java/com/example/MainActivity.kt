@@ -179,7 +179,7 @@ fun MainScreen(viewModel: GenerativeAiViewModel = viewModel()) {
                 is AgentState.ProposedChanges -> {
                     ProposedChangesScreen(
                         state = s,
-                        onApply = { viewModel.applyChanges(context, s.response.changes) },
+                        onApply = { viewModel.applyChanges(context, s.response) },
                         onCancel = { viewModel.cancelChanges() }
                     )
                 }
@@ -432,6 +432,25 @@ fun ProposedChangesScreen(
         LazyColumn(
             modifier = Modifier.weight(1f).fillMaxWidth()
         ) {
+            if (state.response.actions.isNotEmpty()) {
+                item {
+                    Text("Actions to execute", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.secondary)
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+                items(state.response.actions) { action ->
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.tertiaryContainer)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(text = "Action: ${action.actionType}", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                            Text(text = action.parameters.toString(), style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                }
+                item { Spacer(modifier = Modifier.height(16.dp)) }
+            }
             items(state.response.changes) { change ->
                 Card(
                     modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
