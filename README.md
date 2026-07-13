@@ -14,7 +14,7 @@ AI File Agent is a modern Android application that allows you to load local work
 1. Download the latest APK from the [Releases](https://github.com/) page or clone the repository.
 2. Build the project using Android Studio or Gradle:
    ```bash
-   ./gradlew assembleDebug
+   gradle assembleDebug
    ```
 3. Open the app on your Android device.
 
