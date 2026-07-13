@@ -10,6 +10,7 @@ import android.os.Environment
 import android.provider.Settings
 import androidx.core.content.ContextCompat
 import com.example.viewmodel.ModelManager
+import com.example.viewmodel.DownloadState
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -237,21 +238,41 @@ fun SettingsDialog(settingsManager: SettingsManager, context: android.content.Co
                 Text("Available Local Models:", style = MaterialTheme.typography.titleMedium)
                 LazyColumn(modifier = Modifier.height(400.dp)) {
                     items(ModelManager.availableModels) { model ->
-                        val isDownloaded = ModelManager.isModelDownloaded(context, model)
-                        Row(
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(model.name, modifier = Modifier.weight(1f))
-                            if (isDownloaded) {
-                                TextButton(onClick = { localPath = ModelManager.getModelPath(context, model) }) {
-                                    Text("Select")
+                        val downloadState by ModelManager.observeDownload(context, model).collectAsState(initial = DownloadState.NotDownloaded)
+                        
+                        Column(modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(model.name)
+                                    Text("Size: ${model.size}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                                 }
-                            } else {
-                                IconButton(onClick = { ModelManager.downloadModel(context, model) }) {
-                                    Icon(Icons.Default.Download, contentDescription = "Download")
+                                
+                                when (downloadState) {
+                                    is DownloadState.Downloaded -> {
+                                        TextButton(onClick = { localPath = ModelManager.getModelPath(context, model) }) {
+                                            Text("Select")
+                                        }
+                                    }
+                                    is DownloadState.Downloading -> {
+                                        Text("${((downloadState as DownloadState.Downloading).progress * 100).toInt()}%", style = MaterialTheme.typography.bodySmall)
+                                    }
+                                    is DownloadState.NotDownloaded -> {
+                                        IconButton(onClick = { ModelManager.downloadModel(context, model) }) {
+                                            Icon(Icons.Default.Download, contentDescription = "Download")
+                                        }
+                                    }
                                 }
+                            }
+                            if (downloadState is DownloadState.Downloading) {
+                                val progress = (downloadState as DownloadState.Downloading).progress
+                                LinearProgressIndicator(
+                                    progress = { progress },
+                                    modifier = Modifier.fillMaxWidth().padding(top = 4.dp)
+                                )
                             }
                         }
                     }

@@ -279,45 +279,66 @@ class GenerativeAiViewModel : ViewModel() {
 
     private fun traverseFolderDirect(root: File, path: String, depth: Int = 0): List<FileItem> {
         val result = mutableListOf<FileItem>()
-        if (depth > 5) return result // Prevent too deep recursion
+        if (depth > 15) return result // Prevent too deep recursion
         
         val files = root.listFiles() ?: return result
         
-        // Skip hidden folders and common large directories to prevent freezing
         for (file in files) {
-            if (file.name.startsWith(".")) continue
-            if (file.name == "Android" && depth == 0) continue
+            val name = file.name
+            if ((name == "Android" && depth == 0) || name == ".git" || name == ".thumbnails" || name == ".gradle" || name == ".idea") continue
             
-            val filePath = if (path.isEmpty()) file.name else "$path/${file.name}"
+            val filePath = if (path.isEmpty()) name else "$path/$name"
             if (file.isDirectory) {
                 result.addAll(traverseFolderDirect(file, filePath, depth + 1))
-            } else if (file.isFile && isTextual(file.name)) {
+            } else if (file.isFile) {
                 try {
-                    // Limit file size to 100KB to prevent OOM
-                    if (file.length() < 100_000) {
-                        val fileContent = file.readText()
-                        result.add(FileItem(Uri.fromFile(file), filePath, fileContent))
+                    var content = ""
+                    val size = file.length()
+                    if (isTextual(name)) {
+                        if (size < 250_000) {
+                            content = file.readText()
+                        } else {
+                            content = "[Text file too large: ${size / 1024} KB]"
+                        }
+                    } else {
+                        content = "[Binary or unsupported file: ${size / 1024} KB]"
                     }
+                    result.add(FileItem(Uri.fromFile(file), filePath, content))
                 } catch (e: Exception) {
-                    // Ignore unreadable files
+                    result.add(FileItem(Uri.fromFile(file), filePath, "[Error reading file: ${e.message}]"))
                 }
             }
         }
         return result
     }
 
-    private fun traverseFolder(context: Context, root: DocumentFile, path: String = ""): List<FileItem> {
+    private fun traverseFolder(context: Context, root: DocumentFile, path: String = "", depth: Int = 0): List<FileItem> {
         val result = mutableListOf<FileItem>()
+        if (depth > 15) return result
+
         root.listFiles().forEach { file ->
-            val filePath = if (path.isEmpty()) file.name ?: "" else "$path/${file.name}"
+            val name = file.name ?: ""
+            if ((name == "Android" && depth == 0) || name == ".git" || name == ".thumbnails" || name == ".gradle" || name == ".idea") return@forEach
+
+            val filePath = if (path.isEmpty()) name else "$path/$name"
             if (file.isDirectory) {
-                result.addAll(traverseFolder(context, file, filePath))
-            } else if (file.isFile && isTextual(file.name ?: "")) {
+                result.addAll(traverseFolder(context, file, filePath, depth + 1))
+            } else if (file.isFile) {
                 try {
-                    val content = context.contentResolver.openInputStream(file.uri)?.bufferedReader()?.use { it.readText() } ?: ""
+                    var content = ""
+                    val size = file.length()
+                    if (isTextual(name)) {
+                        if (size < 250_000) {
+                            content = context.contentResolver.openInputStream(file.uri)?.bufferedReader()?.use { it.readText() } ?: ""
+                        } else {
+                            content = "[Text file too large: ${size / 1024} KB]"
+                        }
+                    } else {
+                        content = "[Binary or unsupported file: ${size / 1024} KB]"
+                    }
                     result.add(FileItem(file.uri, filePath, content))
                 } catch (e: Exception) {
-                    // Ignore unreadable files
+                    result.add(FileItem(file.uri, filePath, "[Error reading file: ${e.message}]"))
                 }
             }
         }
