@@ -277,19 +277,17 @@ class GenerativeAiViewModel : ViewModel() {
         }
     }
 
-    private fun traverseFolderDirect(root: File, path: String, depth: Int = 0): List<FileItem> {
-        val result = mutableListOf<FileItem>()
-        if (depth > 15) return result // Prevent too deep recursion
+    private fun traverseFolderDirect(root: File, path: String, depth: Int = 0, maxFiles: Int = 5000, result: MutableList<FileItem> = mutableListOf()): List<FileItem> {
+        if (depth > 15 || result.size >= maxFiles) return result
         
         val files = root.listFiles() ?: return result
         
         for (file in files) {
+            if (result.size >= maxFiles) break
             val name = file.name
-            if ((name == "Android" && depth == 0) || name == ".git" || name == ".thumbnails" || name == ".gradle" || name == ".idea") continue
-            
             val filePath = if (path.isEmpty()) name else "$path/$name"
             if (file.isDirectory) {
-                result.addAll(traverseFolderDirect(file, filePath, depth + 1))
+                traverseFolderDirect(file, filePath, depth + 1, maxFiles, result)
             } else if (file.isFile) {
                 try {
                     var content = ""
@@ -312,17 +310,15 @@ class GenerativeAiViewModel : ViewModel() {
         return result
     }
 
-    private fun traverseFolder(context: Context, root: DocumentFile, path: String = "", depth: Int = 0): List<FileItem> {
-        val result = mutableListOf<FileItem>()
-        if (depth > 15) return result
+    private fun traverseFolder(context: Context, root: DocumentFile, path: String = "", depth: Int = 0, maxFiles: Int = 5000, result: MutableList<FileItem> = mutableListOf()): List<FileItem> {
+        if (depth > 15 || result.size >= maxFiles) return result
 
         root.listFiles().forEach { file ->
+            if (result.size >= maxFiles) return@forEach
             val name = file.name ?: ""
-            if ((name == "Android" && depth == 0) || name == ".git" || name == ".thumbnails" || name == ".gradle" || name == ".idea") return@forEach
-
             val filePath = if (path.isEmpty()) name else "$path/$name"
             if (file.isDirectory) {
-                result.addAll(traverseFolder(context, file, filePath, depth + 1))
+                traverseFolder(context, file, filePath, depth + 1, maxFiles, result)
             } else if (file.isFile) {
                 try {
                     var content = ""
