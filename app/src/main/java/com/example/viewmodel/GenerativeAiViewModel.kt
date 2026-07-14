@@ -381,6 +381,7 @@ class GenerativeAiViewModel : ViewModel() {
             if (file.isDirectory) {
                 traverseFolderDirect(file, filePath, depth + 1, maxFiles, result)
             } else if (file.isFile) {
+                if (isMediaFile(name)) continue
                 try {
                     var content = ""
                     val size = file.length()
@@ -412,6 +413,7 @@ class GenerativeAiViewModel : ViewModel() {
             if (file.isDirectory) {
                 traverseFolder(context, file, filePath, depth + 1, maxFiles, result)
             } else if (file.isFile) {
+                if (isMediaFile(name)) return@forEach
                 try {
                     var content = ""
                     val size = file.length()
@@ -431,6 +433,18 @@ class GenerativeAiViewModel : ViewModel() {
             }
         }
         return result
+    }
+
+    private fun isMediaFile(name: String): Boolean {
+        val ext = name.substringAfterLast('.', "").lowercase()
+        val mediaExtensions = setOf(
+            "jpg", "jpeg", "png", "gif", "bmp", "webp", "heic", "svg", "ico",
+            "mp4", "mkv", "avi", "mov", "wmv", "flv", "webm", "3gp",
+            "mp3", "wav", "ogg", "m4a", "flac", "aac", "opus", "amr",
+            "pdf", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "zip", "rar", "tar", "gz", "7z",
+            "crypt14", "crypt15" // WhatsApp backups
+        )
+        return mediaExtensions.contains(ext)
     }
 
     private fun isTextual(name: String): Boolean {
